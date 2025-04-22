@@ -1093,6 +1093,7 @@ require('lazy').setup({
   require 'custom.plugins.markview',
   require 'custom.plugins.neotest',
   require 'custom.plugins.git_fugitive',
+  require 'custom.plugins.kulala',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
