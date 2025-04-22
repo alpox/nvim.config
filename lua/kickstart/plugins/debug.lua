@@ -81,6 +81,24 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
+    -- Configure PHP/Xdebug
+    dap.adapters.php = {
+      type = 'executable',
+      command = 'node',
+      args = { vim.fn.stdpath 'data' .. '/mason/packages/php-debug-adapter/extension/out/phpDebug.js' },
+    }
+
+    dap.configurations.php = {
+      {
+        type = 'php',
+        request = 'launch',
+        name = 'Listen for Xdebug',
+        port = 9003, -- Xdebug default port
+        stopOnEntry = false,
+        -- No path mappings needed
+      },
+    }
+
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
@@ -95,6 +113,17 @@ return {
       ensure_installed = {
         -- Update this to ensure that you have the debuggers for the langs you want
         'delve',
+      },
+    }
+
+    dap.adapters['pwa-node'] = {
+      type = 'server',
+      host = 'localhost',
+      port = '${port}',
+      executable = {
+        command = 'node',
+        -- TODO update with your correct path (when you install it in the next step)
+        args = { '/opt/js-debug/src/dapDebugServer.js', '${port}' },
       },
     }
 
@@ -144,5 +173,14 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+
+    -- Keymaps for debugging
+    vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, { desc = 'Toggle Breakpoint' })
+    vim.keymap.set('n', '<leader>dc', dap.continue, { desc = 'Continue' })
+    vim.keymap.set('n', '<leader>ds', dap.step_over, { desc = 'Step Over' })
+    vim.keymap.set('n', '<leader>di', dap.step_into, { desc = 'Step Into' })
+    vim.keymap.set('n', '<leader>do', dap.step_out, { desc = 'Step Out' })
+    vim.keymap.set('n', '<leader>dx', dap.terminate, { desc = 'Terminate' })
+    vim.keymap.set('n', '<leader>du', dapui.toggle, { desc = 'Toggle UI' })
   end,
 }

@@ -7,11 +7,58 @@ return {
       local lint = require 'lint'
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
-        json = { "jsonlint" },
-        clojure = { "clj-kondo" },
+        json = { 'jsonlint' },
+        clojure = { 'clj-kondo' },
         javascript = { 'eslint' },
-        typescript = { 'eslint' }
+        typescript = { 'eslint' },
+        php = { 'phpstan' },
+        json = { 'jsonlint' },
+        yaml = { 'yamllint' },
       }
+
+      -- PHPStan configuration
+      lint.linters.phpstan = {
+        cmd = 'phpstan',
+        args = {
+          'analyze',
+          '--error-format=raw',
+          '--no-progress',
+          '--level=5', -- Adjust level as needed (0-9)
+        },
+        stdin = false,
+        append_fname = true,
+        -- Custom parser for PHPStan output
+        parser = function(output, _)
+          local diagnostics = {}
+          for line in output:gmatch '[^\r\n]+' do
+            local file, line_number, message = line:match '^(.+):(%d+):(.+)'
+            if file and line_number and message then
+              table.insert(diagnostics, {
+                lnum = tonumber(line_number) - 1,
+                col = 0,
+                end_lnum = tonumber(line_number) - 1,
+                end_col = 0,
+                severity = vim.diagnostic.severity.ERROR,
+                message = message:gsub('^%s*', ''),
+                source = 'phpstan',
+              })
+            end
+          end
+          return diagnostics
+        end,
+      }
+
+      -- Create .phpstan.neon if needed
+      vim.api.nvim_create_user_command('PhpstanInit', function()
+        local file = io.open('.phpstan.neon', 'w')
+        if file then
+          file:write 'parameters:\n  level: 5\n  paths:\n    - src\n'
+          file:close()
+          print 'Created .phpstan.neon configuration file'
+        else
+          print 'Failed to create .phpstan.neon file'
+        end
+      end, {})
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
       -- instead set linters_by_ft like this:

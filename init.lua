@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -172,6 +172,9 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '<S-d>', function()
+  vim.diagnostic.open_float { scope = 'cursor' }
+end, { desc = 'Show diagnostic Popup' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -472,7 +475,9 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>sgc', git_bcommits, { desc = '[S]earch [G]it [Commit] history' })
       vim.keymap.set('n', '<leader>sgf', git_commits, { desc = '[S]earch [G]it [Commit] history of current file' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader><leader>', function()
+        builtin.buffers { sort_mru = true }
+      end, { desc = '[ ] Find existing buffers' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -718,6 +723,7 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
+        yamlls = {},
         ts_ls = {
           init_options = {
             plugins = {
@@ -751,6 +757,26 @@ require('lazy').setup({
           },
         },
         tailwindcss = {},
+
+        eslint = {},
+
+        intelephense = {
+          init_options = {
+            licenceKey = '00RSGUT6UOYD51R', -- Add your license key if you have one
+            -- Adjust settings as needed
+            storagePath = vim.fn.stdpath 'data' .. '/intelephense',
+          },
+          settings = {
+            intelephense = {
+              files = {
+                maxSize = 1000000,
+              },
+              environment = {
+                phpVersion = '8.2', -- Adjust to your PHP version
+              },
+            },
+          },
+        },
       }
       --
 
@@ -770,6 +796,9 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'phpstan',
+        'php-cs-fixer',
+        'php-debug-adapter',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -796,12 +825,12 @@ require('lazy').setup({
     cmd = { 'ConformInfo' },
     keys = {
       {
-        '<leader>f',
+        '<leader>fo',
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
         mode = '',
-        desc = '[F]ormat buffer',
+        desc = '[Fo]rmat buffer',
       },
     },
     opts = {
@@ -814,19 +843,22 @@ require('lazy').setup({
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
-          return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
-          }
+          -- return {
+          --   timeout_ms = 500,
+          --   lsp_format = 'fallback',
+          -- }
+          return nil
         end
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
+        php = { 'php_cs_fixer' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        -- typescript = { "prettierd", "prettier", stop_after_first = true },
       },
     },
   },
@@ -907,7 +939,7 @@ require('lazy').setup({
       completion = {
         -- By default, you may press `<c-space>` to show the documentation.
         -- Optionally, set `auto_show = true` to show the documentation after a delay.
-        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        documentation = { auto_show = true, auto_show_delay_ms = 500 },
         trigger = {
           show_in_snippet = true,
           show_on_keyword = true,
@@ -981,6 +1013,8 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
+      require('mini.diff').setup()
+
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
@@ -1006,7 +1040,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'css', 'tsx' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'css', 'tsx', 'php' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1047,8 +1081,18 @@ require('lazy').setup({
   require 'kickstart.plugins.neovim_project',
   require 'custom.plugins.tailwind',
   require 'custom.plugins.multicursor',
-  require 'custom.plugins.avante_ai',
-  require 'custom.plugins.php',
+  require 'custom.plugins.supermaven',
+  require 'custom.plugins.codecompanion',
+  require 'custom.plugins.database',
+  require 'custom.plugins.lazydocker',
+  require 'custom.plugins.overseer',
+  require 'custom.plugins.noice',
+  require 'custom.plugins.toggleterm',
+  require 'custom.plugins.bufferline',
+  require 'custom.plugins.telescope_tabs',
+  require 'custom.plugins.markview',
+  require 'custom.plugins.neotest',
+  require 'custom.plugins.git_fugitive',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.

@@ -13,10 +13,11 @@ return {
     'nvim-telescope/telescope.nvim',
     'nvim-lua/plenary.nvim',
   },
+
   config = function()
     require('telescope').load_extension 'lazygit'
 
-    vim.keymap.set('n', '<leader>gg', function()
+    vim.keymap.set('n', '<leader>lg', function()
       require('telescope').extensions.lazygit.lazygit()
     end, { desc = 'Open [L]azy[G]it' })
   end,
