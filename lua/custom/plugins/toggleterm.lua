@@ -19,7 +19,7 @@ return {
       direction = 'float',
     }
 
-    vim.keymap.set('n', '<Leader>th', function()
+    vim.keymap.set('n', '<Leader>ts', function()
       local term = Terminal:new { direction = 'horizontal' }
       term:toggle()
     end, { desc = 'Toggle horizontal terminal' })

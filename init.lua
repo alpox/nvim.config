@@ -163,6 +163,19 @@ vim.opt.confirm = true
 
 vim.opt.laststatus = 3
 
+vim.opt.fillchars = { diff = '/' }
+
+vim.opt.diffopt = {
+  'internal',
+  'filler',
+  'closeoff',
+  'context:12',
+  'algorithm:histogram',
+  'linematch:200',
+  'indent-heuristic',
+  'vertical',
+}
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -469,12 +482,28 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
       vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
       vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-      vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+      vim.keymap.set('n', '<leader>sgg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>sgc', git_bcommits, { desc = '[S]earch [G]it [Commit] history' })
       vim.keymap.set('n', '<leader>sgf', git_commits, { desc = '[S]earch [G]it [Commit] history of current file' })
+
+      vim.keymap.set('n', '<leader>sgG', function()
+        builtin.live_grep {
+          additional_args = function()
+            return { '--no-ignore' }
+          end,
+        }
+      end, { desc = 'Live grep for all files' })
+
+      vim.keymap.set('n', '<leader>sF', function()
+        builtin.find_files {
+          no_ignore = true, -- Include ignored files
+          hidden = true, -- Optionally include hidden files
+        }
+      end, { desc = 'Find all files' })
+
       vim.keymap.set('n', '<leader><leader>', function()
         builtin.buffers { sort_mru = true }
       end, { desc = '[ ] Find existing buffers' })
@@ -740,6 +769,15 @@ require('lazy').setup({
             'vue',
           },
         },
+
+        jsonls = {
+          settings = {
+            json = {
+              schemas = require('schemastore').json.schemas(),
+              validate = { enable = true },
+            },
+          },
+        },
         --
 
         lua_ls = {
@@ -779,6 +817,12 @@ require('lazy').setup({
         },
       }
       --
+
+      -- Kulala
+      --
+      require('lspconfig')['kulala_ls'].setup {
+        capabilities = vim.lsp.protocol.make_client_capabilities(),
+      }
 
       -- Ensure the servers and tools above are installed
       --
@@ -1060,6 +1104,8 @@ require('lazy').setup({
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
 
+  "b0o/schemastore.nvim",
+
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -1094,6 +1140,11 @@ require('lazy').setup({
   require 'custom.plugins.neotest',
   require 'custom.plugins.git_fugitive',
   require 'custom.plugins.kulala',
+  require 'custom.plugins.dadbod-ui',
+  require 'custom.plugins.swell',
+  require 'custom.plugins.elin',
+  require 'custom.plugins.textobjects',
+  require 'custom.plugins.lualine',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
