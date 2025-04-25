@@ -10,9 +10,16 @@ return {
     'marilari88/neotest-vitest',
   },
   config = function()
+    local dap = require 'dap'
+
     require('neotest').setup {
       adapters = {
-        require 'neotest-phpunit',
+        require 'neotest-phpunit' {
+          env = {
+            XDEBUG_CONFIG = 'idekey=neotest',
+          },
+          dap = dap.configurations.php[1],
+        },
 
         require 'neotest-vitest',
 

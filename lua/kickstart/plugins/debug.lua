@@ -11,8 +11,7 @@ return {
   'mfussenegger/nvim-dap',
   -- NOTE: And you can specify dependencies as well
   dependencies = {
-    -- Creates a beautiful debugger UI
-    'rcarriga/nvim-dap-ui',
+    { 'igorlfs/nvim-dap-view', opts = {} },
 
     -- Required dependency for nvim-dap-ui
     'nvim-neotest/nvim-nio',
@@ -72,32 +71,14 @@ return {
     {
       '<F7>',
       function()
-        require('dapui').toggle()
+        require('dap-view').toggle()
       end,
       desc = 'Debug: See last session result.',
     },
   },
   config = function()
     local dap = require 'dap'
-    local dapui = require 'dapui'
-
-    -- Configure PHP/Xdebug
-    dap.adapters.php = {
-      type = 'executable',
-      command = 'node',
-      args = { vim.fn.stdpath 'data' .. '/mason/packages/php-debug-adapter/extension/out/phpDebug.js' },
-    }
-
-    dap.configurations.php = {
-      {
-        type = 'php',
-        request = 'launch',
-        name = 'Listen for Xdebug',
-        port = 9003, -- Xdebug default port
-        stopOnEntry = false,
-        -- No path mappings needed
-      },
-    }
+    local dapview = require 'dap-view'
 
     require('mason-nvim-dap').setup {
       -- Makes a best effort to setup the various debuggers with
@@ -127,25 +108,21 @@ return {
       },
     }
 
-    -- Dap UI setup
-    -- For more information, see |:help nvim-dap-ui|
-    dapui.setup {
-      -- Set icons to characters that are more likely to work in every terminal.
-      --    Feel free to remove or use ones that you like more! :)
-      --    Don't feel like these are good choices.
-      icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
-      controls = {
-        icons = {
-          pause = '⏸',
-          play = '▶',
-          step_into = '⏎',
-          step_over = '⏭',
-          step_out = '⏮',
-          step_back = 'b',
-          run_last = '▶▶',
-          terminate = '⏹',
-          disconnect = '⏏',
-        },
+    -- Configure PHP/Xdebug
+    dap.adapters.php = {
+      type = 'executable',
+      command = 'node',
+      args = { vim.fn.stdpath 'data' .. '/mason/packages/php-debug-adapter/extension/out/phpDebug.js' },
+    }
+
+    dap.configurations.php = {
+      {
+        log = true,
+        type = 'php',
+        request = 'launch',
+        name = 'Listen for Xdebug',
+        port = 9003,
+        stopOnEntry = false,
       },
     }
 
@@ -161,9 +138,19 @@ return {
     --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
     -- end
 
-    dap.listeners.after.event_initialized['dapui_config'] = dapui.open
-    dap.listeners.before.event_terminated['dapui_config'] = dapui.close
-    dap.listeners.before.event_exited['dapui_config'] = dapui.close
+    local dv = require 'dap-view'
+    dap.listeners.before.attach['dap-view-config'] = function()
+      dv.open()
+    end
+    dap.listeners.before.launch['dap-view-config'] = function()
+      dv.open()
+    end
+    dap.listeners.before.event_terminated['dap-view-config'] = function()
+      dv.close()
+    end
+    dap.listeners.before.event_exited['dap-view-config'] = function()
+      dv.close()
+    end
 
     -- Install golang specific config
     require('dap-go').setup {
@@ -181,6 +168,6 @@ return {
     vim.keymap.set('n', '<leader>di', dap.step_into, { desc = 'Step Into' })
     vim.keymap.set('n', '<leader>do', dap.step_out, { desc = 'Step Out' })
     vim.keymap.set('n', '<leader>dx', dap.terminate, { desc = 'Terminate' })
-    vim.keymap.set('n', '<leader>du', dapui.toggle, { desc = 'Toggle UI' })
+    vim.keymap.set('n', '<leader>du', dapview.toggle, { desc = 'Toggle UI' })
   end,
 }
