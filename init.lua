@@ -165,7 +165,7 @@ vim.opt.confirm = true
 
 vim.opt.laststatus = 3
 
-vim.opt.fillchars = { diff = '/' }
+vim.opt.fillchars = { diff = ' ' }
 
 vim.opt.diffopt = {
   'internal',
@@ -1170,6 +1170,8 @@ require('lazy').setup({
   require 'custom.plugins.lualine',
   require 'custom.plugins.neorg',
   require 'custom.plugins.neotest',
+  require 'custom.plugins.rustacean',
+  require 'custom.plugins.smearcursor',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.

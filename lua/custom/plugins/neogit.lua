@@ -20,5 +20,11 @@ return {
         telescope = true, -- Telescope integration
       },
     }
+
+    local neo = require('neogit')
+
+    vim.keymap.set('v', '<LocalLeader>gll', '<cmd>\'<,\'>NeogitLogCurrent<cr>', { desc = 'Neogit Log Current File' })
+    vim.keymap.set('n', '<LocalLeader>gg', '<cmd>Neogit<cr>', { desc = 'Neogit' })
+
   end,
 }
